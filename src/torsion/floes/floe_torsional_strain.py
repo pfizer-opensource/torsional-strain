@@ -45,15 +45,19 @@ torsgenCube.promote_parameter('num_points',
                               description="""The number of evenly spaced torsion angles to sample 
                               when generating torsional conformers.""")
 
-# geometry optimization using smaller basis set (e.g. 6-31G)
+# geometry optimization using smaller basis set (e.g. minix)
 psi4EnergyCube1 = ParallelPsi4EnergyCalculation('parallel_psi4_energy_calculation1')
 psi4EnergyCube1.title = 'Psi4_Cube1'
-psi4EnergyCube1.opt_basis = '6-31G'
-psi4EnergyCube1.spe_basis = '6-31G'
+psi4EnergyCube1.opt_method = 'hf3c'
+psi4EnergyCube1.spe_method = 'hf3c'
+psi4EnergyCube1.opt_basis = 'minix'
+psi4EnergyCube1.spe_basis = 'minix'
 
 # geometry optimization using larger basis set (e.g. 6-31G*)
 psi4EnergyCube2 = ParallelPsi4EnergyCalculation('parallel_psi4_energy_calculation2')
 psi4EnergyCube2.title = 'Psi4_Cube2'
+psi4EnergyCube2.opt_method = 'B3LYP'
+psi4EnergyCube2.spe_method = 'B3LYP'
 psi4EnergyCube2.opt_basis = '6-31G*'
 psi4EnergyCube2.spe_basis = '6-31G**'
 
