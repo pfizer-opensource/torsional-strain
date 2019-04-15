@@ -71,7 +71,7 @@ class SerialPsi4EnergyCalculation(OEMolComputeCube):
     geom_maxiter = parameter.IntegerParameter(
         'geom_maxiter',
         title='Maximum number of geometry optimization steps.',
-        default=200,
+        default=100,
         min_value=1,
         max_value=1000,
         description="""Maximum number of geometry optimization steps.""")

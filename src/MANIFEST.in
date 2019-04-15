@@ -1,0 +1,4 @@
+include README.md
+include manifest.json
+include requirements.txt
+recursive-include torsion *.py
