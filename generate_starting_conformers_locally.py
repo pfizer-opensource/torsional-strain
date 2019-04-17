@@ -1,4 +1,4 @@
 import sys
-from torsion.floes import GenerateConformers
+from floes import GenerateConformers
 
 GenerateConformers.run()

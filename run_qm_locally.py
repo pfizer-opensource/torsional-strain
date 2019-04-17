@@ -1,4 +1,4 @@
 import sys
-from torsion.floes import RunQM
+from floes import RunQM
 
 RunQM.run()
