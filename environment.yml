@@ -1,0 +1,16 @@
+channels:
+- conda-forge
+- psi4
+- defaults
+dependencies:
+- cookiecutter
+- invoke
+- jupyterlab
+- matplotlib
+- numpy
+- pip
+- psi4
+- pycodestyle
+- pyflakes
+- pylint
+- python=3.6
