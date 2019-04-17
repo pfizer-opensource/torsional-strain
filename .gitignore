@@ -1,4 +1,5 @@
 *.py[co]
 .*.swp
+.ipynb_checkpoints/
 dist/
 *.egg-info/
