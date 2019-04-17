@@ -1,4 +1,8 @@
+global-exclude *.pyc
 include README.md
 include manifest.json
-include requirements.txt
+include orion-requirements.txt
+exclude requirements_dev.txt
+include setup.py
 recursive-include torsion *.py
+include floes/*
