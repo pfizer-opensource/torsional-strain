@@ -1,7 +1,7 @@
 import sys
-from torsion.floes import MassivelyParallelDihedralScanFloe
-from torsion.floes import CyclicDihedralScanFloe
-from torsion.floes import MassivelyParallelMultiStepDihedralScanFloe
+from floes import MassivelyParallelDihedralScanFloe
+from floes import CyclicDihedralScanFloe
+from floes import MassivelyParallelMultiStepDihedralScanFloe
 
 prog_name = sys.argv[0]
 

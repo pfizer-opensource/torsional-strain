@@ -1,4 +1,4 @@
 import sys
-from torsion.floes import GenerateFragments
+from floes import GenerateFragments
 
 GenerateFragments.run()
