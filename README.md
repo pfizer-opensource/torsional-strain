@@ -11,10 +11,8 @@ code in this repository using Orion.
 4. Activate the environment
         `conda activate torsion`
 5. Install OpenEye packages
-    a. Insert your magpie token into the first line of `src/requirements.txt`:
-        `--extra-index-url 
-https://token:YOUR_TOKEN@magpie.eyesopen.com/simple/
-`
-       b. Install packages with `pip install -r src/requirements.txt`
+    a. Insert your magpie token into the first line of `requirements_dev.txt`:
+        `--extra-index-url https://token:YOUR_TOKEN@magpie.eyesopen.com/simple/`
+    b. Install packages with `pip install -r requirements_dev.txt`
 
 You should now have an environment capable of running the orion code.
