@@ -1,4 +1,11 @@
-sh
-openeye-toolkits
-openeye-floe==0.2.186b
-#openeye-floe==0.2.185
+# Development requirements for torsion. True production requirements go in setup.py
+--extra-index-url https://token:9c4d38d55a3bfb30b4b72b309e386a66de71783c@magpie.eyesopen.com/simple/
+pytest
+invoke
+sphinx
+Openeye-orionplatform==0.1.14
+OpenEye-floe-pkg-tools
+OpenEye-Artemis
+sphinx_rtd_theme
+
+-e .

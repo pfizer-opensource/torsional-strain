@@ -3,11 +3,14 @@ channels:
 - psi4
 - defaults
 dependencies:
+- black
 - cookiecutter
+- flake8
 - invoke
 - jupyterlab
 - matplotlib
 - numpy
+- pandas
 - pip
 - psi4
 - pycodestyle
