@@ -23,6 +23,8 @@ from json import loads, dump
 from invoke import task, run
 from setuptools import convert_path
 
+from orionclient.session import APISession
+from orionclient.types import WorkFloePackage
 
 @task
 def flake8(ctx):
