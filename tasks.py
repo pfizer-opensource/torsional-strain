@@ -217,3 +217,11 @@ def _clean_orion_package_files(reqs_filename="orion-requirements.txt"):
     if os.path.isfile(reqs_path):
         os.remove(reqs_path)
 
+
+@task
+def upload(ctx):
+    spec = loads(open('manifest.json', 'r').read())
+    session = APISession
+    WorkFloePackage.upload(session, f"dist/{spec['name']}-{spec['version']}.tar.gz")
+    
+    
