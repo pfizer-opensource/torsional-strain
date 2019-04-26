@@ -17,3 +17,4 @@ dependencies:
 - pyflakes
 - pylint
 - python=3.6
+- scipy
