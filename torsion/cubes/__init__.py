@@ -1,5 +1,5 @@
 from .process_sd_data import PrintTorsion
-from .generate_torsion_fragments import SerialGenerateFragments, ParallelGenerateFragments
+from .generate_torsion_fragments import GenerateFragments, ParallelGenerateFragments
 from .generate_starting_conformers import SerialGenerateStartingConfs, ParallelGenerateStartingConfs
 from .generate_torsional_conformers import SerialGenerateTorsionalConfs, ParallelGenerateTorsionalConfs
 from .calculate_energy import SerialPsi4EnergyCalculation, ParallelPsi4EnergyCalculation
