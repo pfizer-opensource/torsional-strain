@@ -13,6 +13,7 @@ dependencies:
 - pandas
 - pip
 - psi4
+- psi4-rt
 - pycodestyle
 - pyflakes
 - pylint
