@@ -52,6 +52,17 @@ def gen_starting_confs(mol, torsion_library, max_one_bond_away=True,
 
     mol1 = mol.CreateCopy()
     mc_mol = oechem.OEMol(mol1)
+    
+    # Tag torsion atoms with their dihedral index
+    for atom in mc_mol.GetAtoms():
+        if atom.GetIdx() == dihedralAtomIndices[0]:
+            atom.SetData('dihidx', 0)
+        if atom.GetIdx() == dihedralAtomIndices[1]:
+            atom.SetData('dihidx', 1)
+        if atom.GetIdx() == dihedralAtomIndices[2]:
+            atom.SetData('dihidx', 2)
+        if atom.GetIdx() == dihedralAtomIndices[3]:
+            atom.SetData('dihidx', 3)
 
     if num_conformers > 1:
         # Set criterion for rotatable bond
@@ -79,6 +90,17 @@ def gen_starting_confs(mol, torsion_library, max_one_bond_away=True,
         logging.debug("Generated a total of %d conformers for %s.", mc_mol.NumConfs(),
                                                                     mol.GetTitle())
 
+        # Reassign 
+        new_didx = [-1, -1, -1, -1]
+        for atom in mc_mol.GetAtoms():
+            if atom.HasData('dihidx'):
+                new_didx[atom.GetData('dihidx')] = atom.GetIdx()
+        oechem.OEClearSDData(mc_mol)
+        oechem.OESetSDData(mc_mol, TAGNAME, ' '.join(str(x+1) for x in new_didx))
+        oechem.OESetSDData(mc_mol, 'TORSION_ATOMS_ParentMol', get_sd_data(mol, 'TORSION_ATOMS_ParentMol'))
+        oechem.OESetSDData(mc_mol, 'TORSION_ATOMPROP', 
+                  f'cs1:0:1;1%{new_didx[0]+1}:1%{new_didx[1]+1}:1%{new_didx[2]+1}:1%{new_didx[3]+1}')
+        
     for conf_no, conf in enumerate(mc_mol.GetConfs()):
         conformer_label = mol.GetTitle()+'_' +\
                          '_'.join(get_sd_data(mol, 'TORSION_ATOMS_ParentMol').split()) +\
