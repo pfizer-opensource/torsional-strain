@@ -1,8 +1,17 @@
 global-exclude *.pyc
+
 include README.md
 include manifest.json
 include orion-requirements.txt
-exclude requirements_dev.txt
 include setup.py
-recursive-include torsion *.py
-include floes/*
+
+prune notebooks
+prune floes
+prune torsion/cubes
+
+include floes/floe_torsional_strain.py
+include torsion/cubes/__init__.py
+include torsion/cubes/calculate_energy.py
+include torsion/cubes/generate_starting_conformers.py
+include torsion/cubes/generate_torsion_fragments.py
+include torsion/cubes/generate_torsional_conformers.py
