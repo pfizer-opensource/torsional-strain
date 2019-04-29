@@ -12,9 +12,9 @@ import subprocess, tempfile
 from openeye.oechem import *
 from openeye.oemedchem import *
 
-CORINA_CMD = "corina -d wh -d preserve -t n"
+#CORINA_CMD = "corina -d wh -d preserve -t n"
 
-SCRATCH_DIR = tempfile.mkdtemp()
+#SCRATCH_DIR = tempfile.mkdtemp()
 
 TORSION_ATOMS_FRAG_KEY = "TORSION_ATOMS_FRAGMENT"
 NUM_ADJACENT_TORSIONS_KEY = "NUM_ADJACENT_TORSIONS"
@@ -352,37 +352,36 @@ class TorsionGenerator():
 def get_molecule_torsion_fragments(mol):
     # generate torsion fragments from the input molecule
     torgen = TorsionGenerator()
-    fragfile = tempfile.NamedTemporaryFile(suffix=".sdf").name
-
     tormols = torgen.GetTorsions(mol)
-
-    ofs = oemolostream(fragfile)
-    for tormol in tormols:
-        if OECount(tormol, OEIsHeavy()) > 25:
-            continue
-        OEWriteMolecule(ofs, tormol)
-
-    ofs.close()
-
-    # process torsion fragments using corina
-    # add missing hydrogens and neutralize
-    corinafile = tempfile.NamedTemporaryFile(dir=SCRATCH_DIR, suffix=".sdf").name
-    corinaProg = "{} {} {}".format(CORINA_CMD, fragfile, corinafile)
-    # print("Running corina: ", corinafile)
-    subprocess.call(corinaProg, shell=True)
-
-    if os.path.exists(corinafile):
-        # retrieve corina output molecules
-        ifs = oemolistream(corinafile)
-        frag_mols = []
-        for mol in ifs.GetOEGraphMols():
-            frag_mols.append(OEGraphMol(mol))
-
-        ifs.close()
-
-        return frag_mols
-    else:
-        return tormols
+    
+    ## process torsion fragments using corina
+    ## add missing hydrogens and neutralize
+    #fragfile = tempfile.NamedTemporaryFile(suffix=".sdf").name
+    #ofs = oemolostream(fragfile)
+    #for tormol in tormols:
+    #    if OECount(tormol, OEIsHeavy()) > 25:
+    #        continue
+    #    OEWriteMolecule(ofs, tormol)
+    #ofs.close()
+    #
+    #corinafile = tempfile.NamedTemporaryFile(dir=SCRATCH_DIR, suffix=".sdf").name
+    #corinaProg = "{} {} {}".format(CORINA_CMD, fragfile, corinafile)
+    ## print("Running corina: ", corinafile)
+    #subprocess.call(corinaProg, shell=True)
+    #
+    #if os.path.exists(corinafile):
+    #    # retrieve corina output molecules
+    #    ifs = oemolistream(corinafile)
+    #    frag_mols = []
+    #    for mol in ifs.GetOEGraphMols():
+    #        frag_mols.append(OEGraphMol(mol))
+    #
+    #    ifs.close()
+    #
+    #    return frag_mols
+    #else:
+    #    return tormols
+    return tormols
 
 
 def gen_torsion_fragments(mol):
