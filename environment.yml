@@ -9,7 +9,7 @@ dependencies:
 - invoke
 - jupyterlab
 - matplotlib
-- numpy
+- numpy==1.16.0
 - pandas
 - pip
 - psi4

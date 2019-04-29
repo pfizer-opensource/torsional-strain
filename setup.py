@@ -24,6 +24,7 @@ from setuptools import setup, find_packages, convert_path
 # Requirements for torsion
 requirements = ["OpenEye-orionplatform==0.1.14",
                 "OpenEye-snowball==0.13.6",
+                "numpy==1.16.0",
                 "sh",
                 "scipy"]
 
