@@ -27,8 +27,12 @@ from orionclient.session import APISession
 from orionclient.types import WorkFloePackage
 
 @task
+def black(ctx):
+    run("black torsion")
+
+@task
 def flake8(ctx):
-    run("flake8 --max-line-length 100 torsion")
+    run("flake8 --max-line-length 88 torsion")
 
 @task
 def update_manifest(ctx):
