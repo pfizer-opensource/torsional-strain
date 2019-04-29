@@ -1,1 +1,1 @@
-{"python_version": 3.6, "name": "torsional-strain", "version": "1.0.0", "requirements": "orion-requirements.txt", "conda_channels": ["psi4/label/dev", "psi4"], "conda_dependencies": ["psi4=1.2a1.dev547", "psi4-rt", "libxc=3.0.0"]}
+{"python_version": 3.6, "name": "torsional-strain", "version": "1.0.0", "requirements": "orion-requirements.txt", "conda_channels": ["psi4"], "conda_dependencies": ["psi4", "psi4-rt", "libxc"]}
