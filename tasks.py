@@ -224,6 +224,20 @@ def _clean_orion_package_files(reqs_filename="orion-requirements.txt"):
 def upload(ctx):
     spec = loads(open('manifest.json', 'r').read())
     session = APISession
-    WorkFloePackage.upload(session, f"dist/{spec['name']}-{spec['version']}.tar.gz")
     
+    # Delete old packages with same name and version
+    floes = []
+    for resource in session.list_resources(WorkFloePackage):
+        if resource.specification['name'] == spec['name'] and resource.specification['version'] == spec["version"]:
+            floes.append(resource)
+    if len(floes) == 0:
+        print(f"No existing packages {spec['name']}-{spec['version']} found on Orion!\nNothing to Delete.")
+    elif len(floes) > 1:
+        print(f"Too many existing packages {spec['name']}-{spec['version']} found on Orion!\n Not deleting anything.")
+    else:
+        session.delete_resource(floes[0])
+        print(f"Deleted package {spec['name']}-{spec['version']} (package {floes[0].id}) from Orion.")
+              
+    new_package = WorkFloePackage.upload(session, f"dist/{spec['name']}-{spec['version']}.tar.gz")
+    print(f"Uploaded package {spec['name']}-{spec['version']} (package {new_package.id}) to Orion.") 
     
