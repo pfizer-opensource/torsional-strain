@@ -9,15 +9,16 @@ from openeye import oechem
 
 import psi4
 
-from floe import constants
-from floe.api import parameter
-from floe.api import OEMolComputeCube, MoleculeOutputPort, ParallelOEMolComputeCube, ParallelMixin
+from datarecord import OEMolRecord
+from floe.api import ParallelMixin, StringParameter, IntegerParameter, BooleanParameter, DecimalParameter
+from cuberecord.cubes import OEMolRecordCube, InOutMolFieldMixin
+from cuberecord.ports import RecordOutputPort
 
 from torsion.utils import get_sd_data, write_energy_profile_to_sddata, save_sddata
 from torsion.core import get_dihedral, calculate_energy
 
 
-class SerialPsi4EnergyCalculation(OEMolComputeCube):
+class Psi4EnergyCalculation(OEMolRecordCube, InOutMolFieldMixin):
     """Calculate the energy using psi4 for a single conformer.
     """
     title = 'PSI4 Energy Calculation (Serial)'
@@ -26,11 +27,9 @@ class SerialPsi4EnergyCalculation(OEMolComputeCube):
     classification = [['Energetics', 'DFT', 'PSI4']]
     tags = [tag for tag_list in classification for tag in tag_list]
 
-    success = MoleculeOutputPort('success')
-    failure = MoleculeOutputPort('failure')
-    system_failure = MoleculeOutputPort('system_failure')
+    system_failure = RecordOutputPort('system_failure')
 
-    spe_method = parameter.StringParameter(
+    spe_method = StringParameter(
         'spe_method',
         title='Method for QM Single-point Energy Calculation',
         default='B3LYP',
@@ -38,7 +37,7 @@ class SerialPsi4EnergyCalculation(OEMolComputeCube):
                  'MP2', 'MP4', 'HF', 'hf3c', 'hf-d3bj', 'pbeh3c'],
         description='QM method for the final single-point calculation')
 
-    spe_basis = parameter.StringParameter(
+    spe_basis = StringParameter(
         'spe_basis',
         title='Basis Set for QM Single-point Energy Calculation',
         default='6-31G**',
@@ -46,13 +45,13 @@ class SerialPsi4EnergyCalculation(OEMolComputeCube):
                  '3-21G', '6-31G', '6-31G*', '6-31G**', '6-31+G*', '6-31+G**', '6-31++G*', '6-31++G**', '6-311+G**'],
         description='The basis set for the final single-point calculation')
 
-    geom_opt_technique = parameter.StringParameter(
+    geom_opt_technique = StringParameter(
         'geom_opt_technique',
         title='Type of Geometry Optimization',
         default='QM',
         choices=['None', 'QM'])
 
-    opt_method = parameter.StringParameter(
+    opt_method = StringParameter(
         'opt_method',
         title='Method for QM Geometry Optimization',
         default='B3LYP',
@@ -60,7 +59,7 @@ class SerialPsi4EnergyCalculation(OEMolComputeCube):
                  'MP2', 'MP4', 'HF', 'hf3c', 'hf-d3bj', 'pbeh3c'],
         description='QM method for the initial optimization')
 
-    opt_basis = parameter.StringParameter(
+    opt_basis = StringParameter(
         'opt_basis',
         title='Basis Set for QM Geometry Optimization',
         default='6-31G*',
@@ -68,7 +67,7 @@ class SerialPsi4EnergyCalculation(OEMolComputeCube):
                  '3-21G', '6-31G', '6-31G*', '6-31G**', '6-31+G*', '6-31+G**', '6-31++G*', '6-31++G**', '6-311+G**'],
         description='The basis set for the initial optimization.')
 
-    geom_maxiter = parameter.IntegerParameter(
+    geom_maxiter = IntegerParameter(
         'geom_maxiter',
         title='Maximum number of geometry optimization steps.',
         default=100,
@@ -76,17 +75,16 @@ class SerialPsi4EnergyCalculation(OEMolComputeCube):
         max_value=1000,
         description="""Maximum number of geometry optimization steps.""")
 
-    dft_radial_points = parameter.IntegerParameter(
+    dft_radial_points = IntegerParameter(
         'dft_radial_points',
         title='DFT Grid Radial Points',
         default=50,
         min_value=25,
         max_value=500,
-        level=constants.ADVANCED,
         description="""Parameter controls the radial density of the DFT grid.  DFT calculation speeds are very
                         sensitive to this parameter.""")
 
-    dft_spherical_points = parameter.IntegerParameter(
+    dft_spherical_points = IntegerParameter(
         'dft_spherical_points',
         title='DFT GRid Spherical Points',
         default=194,
@@ -94,23 +92,21 @@ class SerialPsi4EnergyCalculation(OEMolComputeCube):
         max_value=500,
         description="""Parameter controls the spherical density of the DFT grid.  DFT calculation speeds are sensitive
                         to this parameter.""",
-        level=constants.ADVANCED)
+        )
 
-    num_processors = parameter.IntegerParameter(
+    num_processors = IntegerParameter(
         'num_processors',
         title='Number of Processors',
         default=1,
         min_value=0,
         max_value=32,
-        level=constants.ADVANCED,
         help_text="""Number of processors 1-32 (0 indicates to use all the processors on the machine).  This is the
                       Number of processors for each Orion worker instance.  Unless your Orion worker instances have
                       been setup to avoid sharing resources, the should remain set at 1.""")
 
-    guess_basis = parameter.BooleanParameter(
+    guess_basis = BooleanParameter(
         'guess_basis',
         title='Basis set guess',
-        level=constants.ADVANCED,
         required=False,
         default=False,
         help_text="""Psi4 advanced parameter:  Accelerate convergence by performing a preliminary scf with this small 
@@ -118,19 +114,17 @@ class SerialPsi4EnergyCalculation(OEMolComputeCube):
         3-21G small basis set.
         http://www.psicode.org/psi4manual/master/autodir_options_c/scf__basis_guess.html""")
 
-    use_soscf = parameter.BooleanParameter(
+    use_soscf = BooleanParameter(
         'use_soscf',
         title='Use Second-Order SCF',
-        level=constants.ADVANCED,
         required=False,
         default=False,
         help_text="""Psi4 advance parameter: Do use second-order SCF convergence methods?
         http://www.psicode.org/psi4manual/master/autodir_options_c/scf__soscf.html""")
 
-    scf_type = parameter.StringParameter(
+    scf_type = StringParameter(
         'scf_type',
         title='SCF Type',
-        level=constants.ADVANCED,
         required=False,
         default='DIRECT',
         choices=['DIRECT', 'DF', 'PK', 'OUT_OF_CORE', 'PS', 'INDEPENDENT', 'GTFOCK'],
@@ -138,7 +132,7 @@ class SerialPsi4EnergyCalculation(OEMolComputeCube):
         """
     )
 
-    only_selected_conformer = parameter.BooleanParameter(
+    only_selected_conformer = BooleanParameter(
         'only_selected_conformer',
         title='Calculate Energy only for a selected conformer',
         default=False,
@@ -147,21 +141,21 @@ class SerialPsi4EnergyCalculation(OEMolComputeCube):
         which the energy is calculated is determined by the 'SELECTED_CONFORMER'
         integer data tag on the OEMol.""")
 
-    molden_output = parameter.BooleanParameter(
+    molden_output = BooleanParameter(
         'molden_output',
         title='Attach electronic wave function from molden file as SD data',
         default=False,
         help_text="""If this is set, electronic wave function from
         molden file will be attached as SD data.""")
 
-    g_convergence = parameter.StringParameter(
+    g_convergence = StringParameter(
         'g_convergence',
         title='Psi4 g_convergence parameter',
         default='QCHEM',
         choices=['QCHEM', 'MOLPRO', 'GAU', 'GAU_LOOSE', 'GAU_TIGHT', 'INTERFRAG_TIGHT', 'GAU_VERYTIGHT', 'TURBOMOLE', 'CFOUR', 'NWCHEM_LOOSE'],
         help_text="""Allows selection of a psi4 convergence criteria.  See: http://www.psicode.org/psi4manual/master/autodoc_glossary_options_c.html#term-g-convergence-optking""")
 
-    max_disp_g_convergence = parameter.DecimalParameter(
+    max_disp_g_convergence = DecimalParameter(
         'max_disp_g_convergence',
         title='Psi4 max_disp_g_convergence parameter',
         default=1.2e-3,
@@ -204,7 +198,14 @@ class SerialPsi4EnergyCalculation(OEMolComputeCube):
         if os.path.exists(os.environ['PSI_SCRATCH_LOCAL']):
             os.rmdir(os.environ['PSI_SCRATCH_LOCAL'])
 
-    def process(self, mol, port):
+    def process(self, record, port):
+        if record.has_value(self.args.in_mol_field):
+            mol = record.get_value(self.args.in_mol_field)
+        else:
+            self.log.error("Could not find molecules in OEMolRecord")
+            self.failure.emit(record)
+            return
+        
         parent_torsion_tag = 'TORSION_ATOMS_ParentMol'
         torsion_atoms_in_parent = get_sd_data(mol, parent_torsion_tag).split()
         dih_name = mol.GetTitle()+ '_' + '_'.join(torsion_atoms_in_parent)
@@ -214,7 +215,7 @@ class SerialPsi4EnergyCalculation(OEMolComputeCube):
         dihedral_atom_indices = [int(x)-1 for x in torsion_atoms_in_fragment]
         if dihedral_atom_indices is None:
             self.log.warning('Unable to find labelled torsion in %s' % dih_name)
-            self.failure.emit(mol)
+            self.failure.emit(record)
             return
 
         try:
@@ -267,17 +268,18 @@ class SerialPsi4EnergyCalculation(OEMolComputeCube):
             else:
                 oechem.OESetSDData(mol, '%s end time' % self.name, time_stamp)
 
-            self.success.emit(mol)
+            optimized_mol_record = OEMolRecord()
+            optimized_mol_record.set_mol(mol)
+            self.success.emit(optimized_mol_record)
         except Exception as e:
             print(e)
 #            traceback.print_stack()
             self.log.error("Error with {} {}".format(mol.GetTitle(), e))
-            self.failure.emit(mol)
+            self.failure.emit(record)
 
 
-class ParallelPsi4EnergyCalculation(ParallelMixin, SerialPsi4EnergyCalculation):
+class ParallelPsi4EnergyCalculation(ParallelMixin, Psi4EnergyCalculation):
     title = 'Calculate Psi4 Energy (Parallel)'
-    classification = [["Energetics", "Psi4", "DFT"]]
 
     parameter_overrides = {
         "prefetch_count": {"default": 1},  # 1 molecule at a time
@@ -285,62 +287,9 @@ class ParallelPsi4EnergyCalculation(ParallelMixin, SerialPsi4EnergyCalculation):
         "item_count": {"default": 1},  # 1 molecule at a time
         "max_failures": {"default": 1}, # only 1 failure permitted
 
-        #"spe_method": {"hidden": False},
-        #"spe_basis": {"hidden": False},
-        #"opt_method": {"hidden": False},
-        #"opt_basis": {"hidden": False},
-        #"geom_maxiter": {"hidden": False},
-        #"molden_output": {"hidden": False},
-
-        #"dft_radial_points": {"hidden": True},
-        #"dft_spherical_points": {"hidden": True},
-        #"guess_basis": {"hidden": True},
-        #"geom_opt_technique": {"hidden": True},
-        #"g_convergence": {"hidden": True},
-        #"max_disp_g_convergence": {"hidden": True},
-        #"num_processors": {"hidden": True},
-        #"only_selected_conformer": {"hidden": True},
-        #"scf_type": {"hidden": True},
-        #"use_soscf": {"hidden": True},
     }
 
     def process_failed(self, data, port, last_error):
         print("Parallel cube failed to process {} from {} with error: {}".format(data, port, last_error))
         self.system_failure.emit(data)
-
-
-class HiddenParamParallelPsi4EnergyCalculation(ParallelMixin, SerialPsi4EnergyCalculation):
-    """
-    Class to mimic Psi4 cube but with no exposed parameters
-    """
-    title = 'Hidden parameter - Calculate Psi4 Energy (Parallel)'
-    classification = [["Energetics", "Psi4", "DFT"]]
-
-    parameter_overrides = {
-        "prefetch_count": {"default": 1},  # 1 molecule at a time
-        "item_timeout": {"default": 43200.0},  # Default 12 hour limit (units are seconds)
-        "item_count": {"default": 1},  # 1 molecule at a time
-        "max_failures": {"default": 1}, # only 1 failure permitted
-        "num_processors": {"hidden": True},
-        "dft_radial_points": {"hidden": True},
-        "dft_spherical_points": {"hidden": True},
-        "g_convergence": {"hidden": True},
-        "max_disp_g_convergence": {"hidden": True},
-        "guess_basis": {"hidden": True},
-        "use_soscf": {"hidden": True},
-        "scf_type": {"hidden": True},
-        "spe_method": {"hidden": True},
-        "spe_basis": {"hidden": True},
-        "opt_method": {"hidden": True},
-        "opt_basis": {"hidden": True},
-        "geom_maxiter": {"hidden": True},
-        "only_selected_conformer": {"hidden": True},
-        "geom_opt_technique": {"hidden": True},
-        "molden_output": {"hidden": True},
-    }
-
-    def process_failed(self, data, port, last_error):
-        print("Parallel cube failed to process {} from {} with error: {}".format(data, port, last_error))
-        self.system_failure.emit(data)
-
-
+        
