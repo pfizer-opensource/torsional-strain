@@ -19,4 +19,3 @@ from .process_sd_data import ENERGY_PROFILE_TAG, TORSION_ATOMS_FRAGMENT_TAG, \
 from .process_sd_data import has_nitrogen_with_negative_formal_charge
 from .molprop import has_undesirable_elements, is_undesirable_molecule, \
     get_modified_molecule_inchi
-from .plotting import plot_dihedral, highlight_atoms_in_mol
