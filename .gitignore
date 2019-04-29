@@ -3,3 +3,4 @@
 .ipynb_checkpoints/
 dist/
 *.egg-info/
+notebooks/
