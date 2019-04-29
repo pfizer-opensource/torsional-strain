@@ -29,15 +29,16 @@ class GenerateFragments(OEMolRecordCube, InOutMolFieldMixin):
                 self.log.info('%d torsion fragments generated for molecule %s.' % (
                                     len(fragments), mol.GetTitle()))
             except Exception as e:
-                self.log.error("Could not generate torsion fragments %s" % mol.GetTitle())
-                self.failure.emit(mol)
+                self.log.error("Could not generate torsion fragments %s: %s" % (mol.GetTitle(), e))
+                self.failure.emit(record)
         else:
             self.failure.emit(record)
 
 
-class ParallelGenerateFragments(GenerateFragments, ParallelMixin):
+class ParallelGenerateFragments(ParallelMixin, GenerateFragments):
     """ Generate torsion fragments
     """
+    title = "Generate Torsion Fragments (Parallel)"
 
     parameter_overrides = {
         "prefetch_count": {"default": 10},  # 10 molecules at a time
