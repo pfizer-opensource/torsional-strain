@@ -75,7 +75,8 @@ torsgenCube.promote_parameter('num_points',
                               title='Number of torsional conformers to generate.',
                               description="""The number of evenly spaced torsion angles to sample 
                               when generating torsional conformers.""")
-sysfail.promote_parameter('data_out', promoted_name='sysfail', title='System Failures')
+sysfail.promote_parameter('data_out', promoted_name='sysfail', title='System Failures',
+                           default='psi4_sysfail')
 failfs1.promote_parameter('data_out', promoted_name='torfail', title='torfail',
                           description="Torsional Conformer Generation Failures",
                           default='torgen_failures')
