@@ -217,7 +217,38 @@ class Psi4EnergyCalculation(OEMolRecordCube, InOutMolFieldMixin):
             self.log.warn('Unable to find labelled torsion in %s' % dih_name)
             self.failure.emit(record)
             return
+        
+        opt_basis = self.args.opt_basis
+        spe_basis = self.args.spe_basis
+        
+        # If fragment contains S
+        #     use 6-31+G* instead of 6-31G*
+        #     use 6-31+G** instead of 6-31G**
+        need_diffuse = False
+        if oechem.OECount(mol, oechem.OEIsSulfur()) > 0:
+            need_diffuse =  True
 
+        for atom in mol.GetAtoms(oechem.OEIsHeavy()):
+            if atom.GetFormalCharge() < 0:
+                need_diffuse =  True
+                
+        if need_diffuse:
+            if opt_basis == '6-31G*':
+                self.log.warn("Using 6-31+G* instead of 6-31G* as opt basis because fragment contains S.")
+                opt_basis = '6-31+G*'
+                
+            if spe_basis == '6-31G*':
+                self.log.warn("Using 6-31+G* instead of 6-31G* as spe basis because fragment contains S.")
+                spe_basis = '6-31+G*'
+                
+            if opt_basis == '6-31G**':
+                self.log.warn("Using 6-31+G** instead of 6-31G** as opt basis because fragment contains S.")
+                opt_basis = '6-31+G**'
+                
+            if spe_basis == '6-31G**':
+                self.log.warn("Using 6-31+G** instead of 6-31G** as spe basis because fragment contains S.")
+                spe_basis = '6-31+G**'
+                
         try:
             if self.args.only_selected_conformer:
                 conf_selection_tag = 'SELECTED_CONFORMER'
@@ -241,10 +272,10 @@ class Psi4EnergyCalculation(OEMolRecordCube, InOutMolFieldMixin):
             dih, _ = get_dihedral(mol, dihedral_atom_indices)
             calculate_energy(mol, dih,
                              spe_method=self.args.spe_method,
-                             spe_basis=self.args.spe_basis,
+                             spe_basis=spe_basis,
                              geom_opt_technique=self.args.geom_opt_technique,
                              opt_method=self.args.opt_method,
-                             opt_basis=self.args.opt_basis,
+                             opt_basis=opt_basis,
                              geom_maxiter=self.args.geom_maxiter,
                              only_selected_conf=self.args.only_selected_conformer,
                              molden_output=self.args.molden_output,
