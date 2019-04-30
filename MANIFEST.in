@@ -12,6 +12,7 @@ prune torsion/cubes
 include floes/floe_torsional_strain.py
 include torsion/cubes/__init__.py
 include torsion/cubes/calculate_energy.py
+include torsion/cubes/calculate_profile.py
 include torsion/cubes/generate_starting_conformers.py
 include torsion/cubes/generate_torsion_fragments.py
 include torsion/cubes/generate_torsional_conformers.py
