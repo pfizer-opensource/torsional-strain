@@ -214,7 +214,7 @@ class Psi4EnergyCalculation(OEMolRecordCube, InOutMolFieldMixin):
         torsion_atoms_in_fragment = get_sd_data(mol, torsion_tag).split()
         dihedral_atom_indices = [int(x)-1 for x in torsion_atoms_in_fragment]
         if dihedral_atom_indices is None:
-            self.log.warning('Unable to find labelled torsion in %s' % dih_name)
+            self.log.warn('Unable to find labelled torsion in %s' % dih_name)
             self.failure.emit(record)
             return
 
