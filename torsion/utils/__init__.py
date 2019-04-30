@@ -8,6 +8,7 @@ from .process_sd_data import has_protonated_double_bonded_ring_nitrogen
 from .torsion_generator import gen_torsion_fragments
 from .torsion_generator import get_fragment_to_parent_atom_mapping
 from .torsion_generator import get_modified_inchi_key
+from .torsion_generator import get_molecule_torsion_fragments
 from .process_sd_data import get_profile_xy_data
 from .process_sd_data import extract_numeric_data_from_profile_str
 from .process_sd_data import copy_QM_calc_parameters
