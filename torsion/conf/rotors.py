@@ -1,11 +1,13 @@
 from openeye import oechem
 
+
 class hasDoubleBondO(oechem.OEUnaryAtomPred):
     def __call__(self, atom):
         for bond in atom.GetBonds():
             if bond.GetOrder() == 2 and bond.GetNbr(atom).IsOxygen():
                 return True
         return False
+
 
 def isAmideRotor(bond):
     if bond.GetOrder() != 1:
@@ -19,6 +21,7 @@ def isAmideRotor(bond):
         return True
     return False
 
+
 def isMethylRotor(bond):
     if bond.GetOrder() != 1:
         return False
@@ -29,38 +32,44 @@ def isMethylRotor(bond):
         return False
 
     def isMethylCarbon(atom):
-        return atom.GetAtomicNum() == oechem.OEElemNo_C and \
-               atom.GetHvyDegree() == 1 and \
-               atom.GetTotalHCount() == 3
+        return (
+            atom.GetAtomicNum() == oechem.OEElemNo_C
+            and atom.GetHvyDegree() == 1
+            and atom.GetTotalHCount() == 3
+        )
 
     return isMethylCarbon(atomB) or isMethylCarbon(atomE)
+
 
 def isEtherRotor(bond):
     if bond.GetOrder() != 1:
         return False
     atomB = bond.GetBgn()
     atomE = bond.GetEnd()
-    
+
     isEtherOxygen = oechem.OEMatchAtom("[OX2][C,c]")
-    return (atomB.IsCarbon() and isEtherOxygen(atomE)) or (atomE.IsCarbon() and isEtherOxygen(atomB))
+    return (atomB.IsCarbon() and isEtherOxygen(atomE)) or (
+        atomE.IsCarbon() and isEtherOxygen(atomB)
+    )
+
 
 def isRotatableBond(bond):
     inRing = oechem.OEBondIsInRing()
 
     return (not inRing(bond)) and (
-            isAmideRotor(bond) or \
-            isMethylRotor(bond) or \
-            isEtherRotor(bond)
-            )
+        isAmideRotor(bond) or isMethylRotor(bond) or isEtherRotor(bond)
+    )
+
 
 # Torsion Library
 torsion_library = [
-            '[C,N,c:1][NX3:2][C:3](=[O])[C,N,c,O:4] 0 180',   # amides are flipped cis and trans
-            '[#1:1][NX3H:2][C:3](=[O])[C,N,c,O:4] 0',  # primary amides are NOT flipped
-            '[*:1][C,c:2][OX2:3][*:4] 0 180',           # hydroxyls and ethers are rotated 180 degrees
-            '[H:1][CH3:2]-!@[!#1:3][*:4] 0.1 180',     # methyls are rotated 180 degrees
-            '[H:1][CH3:2]-!@[!#1:3]=[*:4] 0.1 180'
-            ]
+    "[C,N,c:1][NX3:2][C:3](=[O])[C,N,c,O:4] 0 180",  # amides are flipped cis and trans
+    "[#1:1][NX3H:2][C:3](=[O])[C,N,c,O:4] 0",  # primary amides are NOT flipped
+    "[*:1][C,c:2][OX2:3][*:4] 0 180",  # hydroxyls and ethers are rotated 180 degrees
+    "[H:1][CH3:2]-!@[!#1:3][*:4] 0.1 180",  # methyls are rotated 180 degrees
+    "[H:1][CH3:2]-!@[!#1:3]=[*:4] 0.1 180",
+]
+
 
 class distance_predicate(oechem.OEUnaryBondPred):
     def __init__(self, atom1_idx, atom2_idx):
@@ -74,8 +83,12 @@ class distance_predicate(oechem.OEUnaryBondPred):
         mol = bond.GetParent()
         atom1 = mol.GetAtom(oechem.OEHasAtomIdx(self.atom1_idx))
         atom2 = mol.GetAtom(oechem.OEHasAtomIdx(self.atom2_idx))
-        return max(oechem.OEGetPathLength(atomB, atom1),
-                   oechem.OEGetPathLength(atomE, atom1),
-                   oechem.OEGetPathLength(atomB, atom2),
-                   oechem.OEGetPathLength(atomE, atom2)) <= 3
-
+        return (
+            max(
+                oechem.OEGetPathLength(atomB, atom1),
+                oechem.OEGetPathLength(atomE, atom1),
+                oechem.OEGetPathLength(atomB, atom2),
+                oechem.OEGetPathLength(atomE, atom2),
+            )
+            <= 3
+        )

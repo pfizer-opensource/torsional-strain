@@ -1,57 +1,60 @@
 from __future__ import print_function
 
-'''
+"""
 Script to extract torsion fragments from parent molecules.
 
 Torsion fragments are extracted based on a set of rules
 
-'''
+"""
 import sys, os
 import subprocess, tempfile
 
 from openeye.oechem import *
 from openeye.oemedchem import *
 
-#CORINA_CMD = "corina -d wh -d preserve -t n"
+# CORINA_CMD = "corina -d wh -d preserve -t n"
 
-#SCRATCH_DIR = tempfile.mkdtemp()
+# SCRATCH_DIR = tempfile.mkdtemp()
 
 TORSION_ATOMS_FRAG_KEY = "TORSION_ATOMS_FRAGMENT"
 NUM_ADJACENT_TORSIONS_KEY = "NUM_ADJACENT_TORSIONS"
 ADJACENT_TORSION_ATOMS_KEY = "ADJACENT_TORSION_ATOMS"
-FRAGMENT_TO_PARENT_ATOMS_KEY = 'FRAGMENT_TO_PARENT_ATOMS'
+FRAGMENT_TO_PARENT_ATOMS_KEY = "FRAGMENT_TO_PARENT_ATOMS"
 TORSION_ATOMS_PARENT_MOL_KEY = "TORSION_ATOMS_ParentMol"
 
-class TorsionGenerator():
+
+class TorsionGenerator:
     @staticmethod
     def IsOrtho(atom, torsion):
-        '''
+        """
 
         @param atom:
         @param torsion:
         @type atom: OEAtombase
         @type torsion: OETorsion
         @return: bool
-        '''
+        """
         numRingAtoms = 0
-        for a, b in zip(OEShortestPath(atom, torsion.b),
-                        OEShortestPath(atom, torsion.c)):
-            if a.IsInRing(): numRingAtoms += 1
-            if b.IsInRing(): numRingAtoms += 1
+        for a, b in zip(
+            OEShortestPath(atom, torsion.b), OEShortestPath(atom, torsion.c)
+        ):
+            if a.IsInRing():
+                numRingAtoms += 1
+            if b.IsInRing():
+                numRingAtoms += 1
 
         return numRingAtoms <= 4
 
-
     @staticmethod
     def GetNbrs(atomSet):
-        '''
+        """
         Returns atoms connected to atomSet atoms,
         excluding those from atomSet
 
         @param atomSet: OEAtomBondSet
         @type atomSet: OEAtomBondSet
         @return: None
-        '''
+        """
         allNbrs = []
         for atom in atomSet.GetAtoms():
             nbrs = atom.GetAtoms()
@@ -63,12 +66,12 @@ class TorsionGenerator():
 
     @staticmethod
     def GetSameRingAtoms(mol, atomSet):
-        '''
+        """
 
         @type mol: OEGraphMol
         @type atomSet: OEAtomBondSet
         @return list[OEAtombase]
-        '''
+        """
         OEFindRingAtomsAndBonds(mol)
         numRings, ringIdxPerAtom = OEDetermineRingSystems(mol)
         toKeepRings = {}
@@ -85,11 +88,11 @@ class TorsionGenerator():
 
     @staticmethod
     def GetFuncGroups(mol):
-        '''
+        """
 
         :param mol:
         :return:
-        '''
+        """
         funcGrps = []
         for funcGrp in OEGetFuncGroupFragments(mol):
             if OECount(funcGrp, OEIsHeavy()) > 5:
@@ -105,7 +108,7 @@ class TorsionGenerator():
 
     @staticmethod
     def GetTorsions(mol):
-        '''
+        """
         Goes through each rotatable bond in the molecule
         and extracts torsion atoms (a-b-c-d)
 
@@ -128,7 +131,7 @@ class TorsionGenerator():
         @param mol: OEGraphMol
         @type mol: OEGraphMol
         @return: list[OEGraphMol]
-        '''
+        """
         OEAssignHybridization(mol)
         funcGrps = TorsionGenerator.GetFuncGroups(mol)
         includedTorsions = OEAtomBondSet()
@@ -137,8 +140,12 @@ class TorsionGenerator():
             atom.SetData("idx", atom.GetIdx() + 1)
 
         for torsion in OEGetTorsions(mol, IsRotor()):
-            if torsion.a.IsHydrogen() or torsion.b.IsHydrogen() or \
-                torsion.c.IsHydrogen() or torsion.d.IsHydrogen():
+            if (
+                torsion.a.IsHydrogen()
+                or torsion.b.IsHydrogen()
+                or torsion.c.IsHydrogen()
+                or torsion.d.IsHydrogen()
+            ):
                 continue
 
             torsion_bond = mol.GetBond(torsion.b, torsion.c)
@@ -180,8 +187,9 @@ class TorsionGenerator():
             TorsionGenerator.AddRelevantRingAtoms(mol, torsion, torsionSet)
 
             # special treatment for C=O
-            for atom in torsionSet.GetAtoms(OEAndAtom(
-                    OEIsOxygen(), OEIsAtomHybridization(OEHybridization_sp2))):
+            for atom in torsionSet.GetAtoms(
+                OEAndAtom(OEIsOxygen(), OEIsAtomHybridization(OEHybridization_sp2))
+            ):
                 for nbr in atom.GetAtoms():
                     if torsionSet.HasAtom(nbr):
                         for nbr2 in nbr.GetAtoms(OEIsHeavy()):
@@ -211,8 +219,7 @@ class TorsionGenerator():
             for atom in torsionMol.GetAtoms(OEHasMapIdx(BRIDGE_ATOM_IDX)):
                 atom.SetAtomicNum(OEElemNo_C)
 
-            TorsionGenerator.SetSDData(A_IDX, B_IDX, C_IDX, D_IDX,
-                                       torsion, torsionMol)
+            TorsionGenerator.SetSDData(A_IDX, B_IDX, C_IDX, D_IDX, torsion, torsionMol)
 
             # set map idx to zero in torsion mol
             for atom in torsionMol.GetAtoms():
@@ -230,10 +237,12 @@ class TorsionGenerator():
         OESetSDData(torsionMol, "TORSION_ATOMPROP", apStr)
         fragTorAtoms = "{} {} {} {}".format(taIdx, tbIdx, tcIdx, tdIdx)
         OESetSDData(torsionMol, TORSION_ATOMS_FRAG_KEY, fragTorAtoms)
-        parentTorAtoms = "{} {} {} {}".format(torsion.a.GetIdx() + 1,
-                                              torsion.b.GetIdx() + 1,
-                                              torsion.c.GetIdx() + 1,
-                                              torsion.d.GetIdx() + 1)
+        parentTorAtoms = "{} {} {} {}".format(
+            torsion.a.GetIdx() + 1,
+            torsion.b.GetIdx() + 1,
+            torsion.c.GetIdx() + 1,
+            torsion.d.GetIdx() + 1,
+        )
         OESetSDData(torsionMol, TORSION_ATOMS_PARENT_MOL_KEY, parentTorAtoms)
 
         atom_map = ""
@@ -261,8 +270,9 @@ class TorsionGenerator():
         atom1or2 = OEOrAtom(OEHasMapIdx(1), OEHasMapIdx(2))
         ringNbrs = []
         for atom in mol.GetAtoms(OEAndAtom(OEAtomIsInRing(), atom1or2)):
-            for nbr in atom.GetAtoms(OEAndAtom(
-                    OENotAtom(atom1or2), OENotAtom(OEAtomIsInRing()))):
+            for nbr in atom.GetAtoms(
+                OEAndAtom(OENotAtom(atom1or2), OENotAtom(OEAtomIsInRing()))
+            ):
                 if nbr.IsHydrogen():
                     ringNbrs.append(nbr)
                     continue
@@ -288,16 +298,15 @@ class TorsionGenerator():
                     atom.SetMapIdx(2)
                     torsionSet.AddAtom(atom)
 
-
     @staticmethod
     def GetMinPathLength(refTorsion, adjTorsion):
-        '''
+        """
         Returns path length between the two torsions
 
         @param refTorsion: OETorsion
         @param adjTorsion: OETorsion
         @return: int
-        '''
+        """
         minPathLen = 1000
         for refAtom in [refTorsion.b, refTorsion.c]:
             for torAtom in [adjTorsion.b, adjTorsion.c]:
@@ -309,17 +318,17 @@ class TorsionGenerator():
 
     @staticmethod
     def GetAdjacentTorsions(mol, refTorsion):
-        '''
+        """
         Returns all torsions that are 0 or 1 path length away from
         the reference torsion
 
         @param mol: OEGraphMol
         @param refTorsion: OETorsion
         @return: int
-        '''
+        """
         adjTorsions = []
         PATH_LENGTH_THRESHOLD = 1
-        torset = {str(refTorsion.b.GetIdx()) + "_" + str(refTorsion.c.GetIdx()):True}
+        torset = {str(refTorsion.b.GetIdx()) + "_" + str(refTorsion.c.GetIdx()): True}
         torset[str(refTorsion.c.GetIdx()) + "_" + str(refTorsion.b.GetIdx())] = True
         pred = OEAndBond(OEHasOrder(1), OENotBond(OEBondIsInRing()))
         for adjTorsion in OEGetTorsions(mol, pred):
@@ -353,23 +362,23 @@ def get_molecule_torsion_fragments(mol):
     # generate torsion fragments from the input molecule
     torgen = TorsionGenerator()
     tormols = torgen.GetTorsions(mol)
-    
+
     ## process torsion fragments using corina
     ## add missing hydrogens and neutralize
-    #fragfile = tempfile.NamedTemporaryFile(suffix=".sdf").name
-    #ofs = oemolostream(fragfile)
-    #for tormol in tormols:
+    # fragfile = tempfile.NamedTemporaryFile(suffix=".sdf").name
+    # ofs = oemolostream(fragfile)
+    # for tormol in tormols:
     #    if OECount(tormol, OEIsHeavy()) > 25:
     #        continue
     #    OEWriteMolecule(ofs, tormol)
-    #ofs.close()
+    # ofs.close()
     #
-    #corinafile = tempfile.NamedTemporaryFile(dir=SCRATCH_DIR, suffix=".sdf").name
-    #corinaProg = "{} {} {}".format(CORINA_CMD, fragfile, corinafile)
+    # corinafile = tempfile.NamedTemporaryFile(dir=SCRATCH_DIR, suffix=".sdf").name
+    # corinaProg = "{} {} {}".format(CORINA_CMD, fragfile, corinafile)
     ## print("Running corina: ", corinafile)
-    #subprocess.call(corinaProg, shell=True)
+    # subprocess.call(corinaProg, shell=True)
     #
-    #if os.path.exists(corinafile):
+    # if os.path.exists(corinafile):
     #    # retrieve corina output molecules
     #    ifs = oemolistream(corinafile)
     #    frag_mols = []
@@ -379,7 +388,7 @@ def get_molecule_torsion_fragments(mol):
     #    ifs.close()
     #
     #    return frag_mols
-    #else:
+    # else:
     #    return tormols
     return tormols
 
@@ -391,12 +400,13 @@ def gen_torsion_fragments(mol):
 def get_fragment_to_parent_atom_mapping(parent_mol, frag_mol):
     try:
         mapping_data = OEGetSDData(frag_mol, FRAGMENT_TO_PARENT_ATOMS_KEY)
-        idx_map = dict(map(int, idx_pair.split('_'))
-                       for idx_pair in mapping_data.split('-'))
+        idx_map = dict(
+            map(int, idx_pair.split("_")) for idx_pair in mapping_data.split("-")
+        )
         atom_map = {}
         for frag_idx, parent_idx in idx_map.items():
-            frag_atom = frag_mol.GetAtom(OEHasAtomIdx(frag_idx-1))
-            parent_atom = parent_mol.GetAtom(OEHasAtomIdx(parent_idx-1))
+            frag_atom = frag_mol.GetAtom(OEHasAtomIdx(frag_idx - 1))
+            parent_atom = parent_mol.GetAtom(OEHasAtomIdx(parent_idx - 1))
             if frag_atom is not None and parent_atom is not None:
                 atom_map[frag_atom] = parent_atom
 
@@ -404,8 +414,9 @@ def get_fragment_to_parent_atom_mapping(parent_mol, frag_mol):
     except Exception as e:
         return {}
 
+
 def get_modified_inchi_key(mol, atoms):
-    '''
+    """
     Generates InChIKey for the input molecule.
     Passed atoms of the molecule are mutated (atomic number changed)
     based on the mapping defined in the function.
@@ -415,13 +426,19 @@ def get_modified_inchi_key(mol, atoms):
     @type mol: OEGraphMol
     @type atoms: list[OEAtombase]
     @return: str
-    '''
+    """
     copy_mol = OEGraphMol(mol)
-    atom_map = {OEElemNo_C:OEElemNo_Pb, OEElemNo_N:OEElemNo_Bi,
-                OEElemNo_O:OEElemNo_Po, OEElemNo_F:OEElemNo_At,
-                OEElemNo_S:OEElemNo_Te, OEElemNo_Cl:OEElemNo_I,
-                OEElemNo_P:OEElemNo_Sb, OEElemNo_Br:117,
-                OEElemNo_I:118}
+    atom_map = {
+        OEElemNo_C: OEElemNo_Pb,
+        OEElemNo_N: OEElemNo_Bi,
+        OEElemNo_O: OEElemNo_Po,
+        OEElemNo_F: OEElemNo_At,
+        OEElemNo_S: OEElemNo_Te,
+        OEElemNo_Cl: OEElemNo_I,
+        OEElemNo_P: OEElemNo_Sb,
+        OEElemNo_Br: 117,
+        OEElemNo_I: 118,
+    }
     for ref_atom in atoms:
         copy_atom = copy_mol.GetAtom(OEHasAtomIdx(ref_atom.GetIdx()))
         if copy_atom is None:
@@ -430,29 +447,32 @@ def get_modified_inchi_key(mol, atoms):
 
     return OECreateInChIKey(copy_mol)
 
+
 def CreateInchiKeyPlus(mol):
-    '''
+    """
 
     @param mol: molecule with torsion atom index
     @type mol: OEGraphMol
     @return: str
-    '''
+    """
     inchiKey = OECreateInChIKey(mol)
     try:
-        atomIndices = list(map(int, OEGetSDData(mol, TORSION_ATOMS_FRAG_KEY).strip().split()))
-        a = mol.GetAtom(OEHasAtomIdx(atomIndices[0]-1))
-        b = mol.GetAtom(OEHasAtomIdx(atomIndices[1]-1))
-        c = mol.GetAtom(OEHasAtomIdx(atomIndices[2]-1))
-        d = mol.GetAtom(OEHasAtomIdx(atomIndices[3]-1))
+        atomIndices = list(
+            map(int, OEGetSDData(mol, TORSION_ATOMS_FRAG_KEY).strip().split())
+        )
+        a = mol.GetAtom(OEHasAtomIdx(atomIndices[0] - 1))
+        b = mol.GetAtom(OEHasAtomIdx(atomIndices[1] - 1))
+        c = mol.GetAtom(OEHasAtomIdx(atomIndices[2] - 1))
+        d = mol.GetAtom(OEHasAtomIdx(atomIndices[3] - 1))
 
-        ad = a.GetAtomicNum()*d.GetAtomicNum()
-        bc = b.GetAtomicNum()*c.GetAtomicNum()
+        ad = a.GetAtomicNum() * d.GetAtomicNum()
+        bc = b.GetAtomicNum() * c.GetAtomicNum()
         adAro = int(a.IsAromatic()) + int(d.IsAromatic())
         bcAro = int(b.IsAromatic()) + int(c.IsAromatic())
 
         count1 = len(list(OEGetSubtree(b, c)))
         count2 = len(list(OEGetSubtree(c, b)))
-        count = count1*count2
+        count = count1 * count2
 
         inchiKey = inchiKey + str(ad) + str(bc) + str(adAro) + str(bcAro) + str(count)
     except Exception as e:
@@ -460,36 +480,47 @@ def CreateInchiKeyPlus(mol):
 
     return inchiKey
 
+
 def CreateTorsionInchiKey(mol):
-    '''
+    """
 
     @param mol: molecule with torsion atom index
     @type mol: OEGraphMol
     @return: str|None
-    '''
+    """
     try:
         tormol = OEGraphMol(mol)
-        atomIndices = list(map(int, OEGetSDData(tormol, TORSION_ATOMS_FRAG_KEY).strip().split()))
-        a = tormol.GetAtom(OEHasAtomIdx(atomIndices[0]-1))
-        b = tormol.GetAtom(OEHasAtomIdx(atomIndices[1]-1))
-        c = tormol.GetAtom(OEHasAtomIdx(atomIndices[2]-1))
-        d = tormol.GetAtom(OEHasAtomIdx(atomIndices[3]-1))
+        atomIndices = list(
+            map(int, OEGetSDData(tormol, TORSION_ATOMS_FRAG_KEY).strip().split())
+        )
+        a = tormol.GetAtom(OEHasAtomIdx(atomIndices[0] - 1))
+        b = tormol.GetAtom(OEHasAtomIdx(atomIndices[1] - 1))
+        c = tormol.GetAtom(OEHasAtomIdx(atomIndices[2] - 1))
+        d = tormol.GetAtom(OEHasAtomIdx(atomIndices[3] - 1))
 
-        replace_map = {OEElemNo_C:OEElemNo_Pb, OEElemNo_N:OEElemNo_Bi, OEElemNo_O:OEElemNo_Po, OEElemNo_F:OEElemNo_At, OEElemNo_S:OEElemNo_Te, OEElemNo_Cl:OEElemNo_I, OEElemNo_P:OEElemNo_Sb}
-        #bond = tormol.GetBond(b, c)
-        #tormol.DeleteBond(bond)
+        replace_map = {
+            OEElemNo_C: OEElemNo_Pb,
+            OEElemNo_N: OEElemNo_Bi,
+            OEElemNo_O: OEElemNo_Po,
+            OEElemNo_F: OEElemNo_At,
+            OEElemNo_S: OEElemNo_Te,
+            OEElemNo_Cl: OEElemNo_I,
+            OEElemNo_P: OEElemNo_Sb,
+        }
+        # bond = tormol.GetBond(b, c)
+        # tormol.DeleteBond(bond)
 
-        #for hatom in tormol.GetAtoms(OEIsHydrogen()):
+        # for hatom in tormol.GetAtoms(OEIsHydrogen()):
         #    hatom.SetData("originalH", True)
 
         # fill the valence. otherwise, inchi generation will throw warnings
-        #OEAssignImplicitHydrogens(tormol)
-        #OEAddExplicitHydrogens(tormol)
-        #for hatom in tormol.GetAtoms(OEIsHydrogen()):
+        # OEAssignImplicitHydrogens(tormol)
+        # OEAddExplicitHydrogens(tormol)
+        # for hatom in tormol.GetAtoms(OEIsHydrogen()):
         #    if not hatom.HasData("originalH"):
         #        hatom.SetAtomicNum(OEElemNo_Li)
 
-        #inchiKey = OECreateInChIKey(mol) + OECreateInChIKey(tormol)
+        # inchiKey = OECreateInChIKey(mol) + OECreateInChIKey(tormol)
         b.SetAtomicNum(replace_map[b.GetAtomicNum()])
         c.SetAtomicNum(replace_map[c.GetAtomicNum()])
         inchiKey = OECreateInChIKey(mol) + OECreateInChIKey(tormol)
@@ -497,9 +528,3 @@ def CreateTorsionInchiKey(mol):
     except Exception as e:
         print("CreateTorsionInchiKey ", e)
         return None
-
-
-
-
-
-

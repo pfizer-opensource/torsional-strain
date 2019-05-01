@@ -10,6 +10,7 @@ from torsion.utils import gen_torsion_fragments
 class GenerateFragments(OEMolRecordCube, InOutMolFieldMixin):
     """ Generate torsion fragments
     """
+
     title = "Generate Torsion Fragments"
     classification = [["Cheminformatics"]]
 
@@ -19,17 +20,21 @@ class GenerateFragments(OEMolRecordCube, InOutMolFieldMixin):
             try:
                 fragments = gen_torsion_fragments(mol)
                 if len(fragments) == 0:
-                    raise('Unable to generate torsion fragments')
+                    raise ("Unable to generate torsion fragments")
 
                 for fragment in fragments:
                     fragment_record = OEMolRecord()
                     fragment_record.set_mol(fragment)
                     self.success.emit(fragment_record)
-                    
-                self.log.info('%d torsion fragments generated for molecule %s.' % (
-                                    len(fragments), mol.GetTitle()))
+
+                self.log.info(
+                    "%d torsion fragments generated for molecule %s."
+                    % (len(fragments), mol.GetTitle())
+                )
             except Exception as e:
-                self.log.error("Could not generate torsion fragments %s: %s" % (mol.GetTitle(), e))
+                self.log.error(
+                    "Could not generate torsion fragments %s: %s" % (mol.GetTitle(), e)
+                )
                 self.failure.emit(record)
         else:
             self.failure.emit(record)
@@ -38,12 +43,12 @@ class GenerateFragments(OEMolRecordCube, InOutMolFieldMixin):
 class ParallelGenerateFragments(ParallelMixin, GenerateFragments):
     """ Generate torsion fragments
     """
+
     title = "Generate Torsion Fragments (Parallel)"
 
     parameter_overrides = {
         "prefetch_count": {"default": 10},  # 10 molecules at a time
         "item_timeout": {"default": 100.0},  # (units are seconds)
         "item_count": {"default": 1},  # 1 molecule at a time
-        "max_failures": {"default": 1}, # only 1 failure permitted
+        "max_failures": {"default": 1},  # only 1 failure permitted
     }
-

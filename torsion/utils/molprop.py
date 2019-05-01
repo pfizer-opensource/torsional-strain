@@ -1,6 +1,7 @@
 import numpy as np
 from openeye import oechem
 
+
 def get_bond_lengths(mc_mol):
     bond_lengths = []
 
@@ -21,15 +22,16 @@ def get_bond_lengths(mc_mol):
         raise ValueError("Unrecognized molecule type.")
     return np.array(bond_lengths)
 
+
 def has_undesirable_elements(mol):
-    '''
+    """
     returns True if molecule contains any element other than
     H, C, N, O, F, S, Cl, or P
 
     @param mol:
     @type mol: OEGraphMol
     @return: bool
-    '''
+    """
     atomsHC = oechem.OEOrAtom(oechem.OEIsHydrogen(), oechem.OEIsCarbon())
     atomsNO = oechem.OEOrAtom(oechem.OEIsNitrogen(), oechem.OEIsOxygen())
     atomsFS = oechem.OEOrAtom(oechem.OEHasAtomicNum(9), oechem.OEIsSulfur())
@@ -44,6 +46,7 @@ def has_undesirable_elements(mol):
 
     return False
 
+
 def is_undesirable_molecule(mol):
     if has_undesirable_elements(mol):
         return True
@@ -52,8 +55,8 @@ def is_undesirable_molecule(mol):
 
     return False
 
+
 def get_modified_molecule_inchi(mol):
-    title = mol.GetTitle().replace(',', '')
+    title = mol.GetTitle().replace(",", "")
     inchi = oechem.OECreateInChIKey(mol)
     return inchi + title
-

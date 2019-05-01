@@ -2,6 +2,7 @@ from openeye import oechem, oedepict
 from .process_sd_data import get_sd_data
 from ..core import get_dihedral
 
+
 def plot_indices(mol2, width=200, height=200):
     mol = mol2.CreateCopy()
 
@@ -11,13 +12,16 @@ def plot_indices(mol2, width=200, height=200):
 
     disp = oedepict.OE2DMolDisplay(mol, opts)
     img = oedepict.OEImage(width, height)
-    
+
     oedepict.OERenderMolecule(img, disp)
-    return(img)
+    return img
+
 
 def plot_dihedral(mol2, width=200, height=200):
     mol = mol2.CreateCopy()
-    dihedralAtomIndices = [int(x)-1 for x in get_sd_data(mol, 'TORSION_ATOMS_FRAGMENT').split()]
+    dihedralAtomIndices = [
+        int(x) - 1 for x in get_sd_data(mol, "TORSION_ATOMS_FRAGMENT").split()
+    ]
     dih, tor = get_dihedral(mol, dihedralAtomIndices)
 
     opts = oedepict.OE2DMolDisplayOptions(width, height, oedepict.OEScale_AutoScale)
@@ -32,7 +36,8 @@ def plot_dihedral(mol2, width=200, height=200):
     oedepict.OEAddHighlighting(disp, hstyle, tor)
 
     oedepict.OERenderMolecule(img, disp)
-    return(img)
+    return img
+
 
 def highlight_atoms_in_mol(mol2, dihedralAtomIndices, width=200, height=200):
     mol = mol2.CreateCopy()
@@ -47,10 +52,10 @@ def highlight_atoms_in_mol(mol2, dihedralAtomIndices, width=200, height=200):
         oedepict.OEAddHighlighting(disp, hstyle, oechem.OEHasAtomIdx(atom_idx))
 
     oedepict.OERenderMolecule(img, disp)
-    return(img)
-   
-    
-def draw_subsearch_highlights(mol, subsearch, width=400., height=400.):
+    return img
+
+
+def draw_subsearch_highlights(mol, subsearch, width=400.0, height=400.0):
     """
     Draws the hits for the substructure in a given molecule.
     
@@ -67,7 +72,7 @@ def draw_subsearch_highlights(mol, subsearch, width=400., height=400.):
     unique = True
     for match in subsearch.Match(mol, unique):
         oedepict.OEAddHighlighting(disp, hstyle, match)
-    
+
     oedepict.OERenderMolecule(img, disp)
-    #return oenb.draw_oeimage_to_img_tag(img)
+    # return oenb.draw_oeimage_to_img_tag(img)
     return img
