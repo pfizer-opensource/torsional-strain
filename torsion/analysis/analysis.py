@@ -183,8 +183,6 @@ def cal_molecule_torsion_strain(mol, profiles_map):
                         oechem.OESetSDData(conf, 'QM_TORSION_%d_'%tor_idx + ENERGY_PROFILE_TAG, bondIdx2profile[bidx])
                         oechem.OESetSDData(conf, 'TORSION_ANGLE_%d'%tor_idx, '%.1f'%bondIdx2angles[bidx])
                         oechem.OESetSDData(conf, 'QM_STRAIN_TORSION_%d'%tor_idx, '%.1f'%bondIdx2energy[bidx])
-                        oechem.OESetSDData(conf, 'QM_METHOD_%d'%tor_idx, '%.1f'%bondIdx2energy[bidx])
-                        oechem.OESetSDData(conf, 'QM_BASIS_%d'%tor_idx, '%.1f'%bondIdx2energy[bidx])
                         tor_idx += 1
 
                 oechem.OESetSDData(conf, 'QM_STRAIN', '%.1f'%total_strain)
