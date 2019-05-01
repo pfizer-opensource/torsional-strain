@@ -5,6 +5,4 @@ from argparse import Namespace
 from torsion.cubes import SerialPsi4EnergyCalculation
 
 
-
 cube = SerialPsi4EnergyCalculation("")
-
