@@ -10,12 +10,12 @@ code in this repository using Orion.
         `conda env create -v -f environment.yaml -n torsion`
 4. Activate the environment
         `conda activate torsion`
-5. Install OpenEye packages
-    a. Insert your magpie token into the first line of `requirements_dev.txt`:
-        `--extra-index-url https://token:YOUR_TOKEN@magpie.eyesopen.com/simple/`
+5. Install OpenEye packages  
+    a. Insert your magpie token into the first line of `requirements_dev.txt`:  
+            `--extra-index-url https://token:YOUR_TOKEN@magpie.eyesopen.com/simple/`  
     b. Install packages with `pip install -r requirements_dev.txt`
-6. Configure the orion CLI 
-        `ocli --profile=default config profile`
+6. Configure the orion CLI  
+            `ocli --profile=default config profile`
 
 You should now have an environment capable of running the orion code.
 
@@ -26,4 +26,10 @@ You should now have an environment capable of running the orion code.
 This will add a package called `torsional-strain 1.0.0` with a floe called `Torsional Strain Energy` to Orion. 
 ![Floe Screenshot](floe_screenshot.jpg?raw=true "Floe Screenshot")
 
-The floe requires only one input: a dataset of molecules for which we want to calculate torsional strain.
+## Running the Floe
+The floe requires only one input: a dataset of molecules for which we want to calculate torsional strain.  
+The floe generates two datasets as primary outputs:
+1. `output`: one output molecule per input molecule, with total molecular strain, strains at every torsion, and the torsional energy profiles of all the torsions attached as SD properties
+2. `qm_confs`: QM-optimized conformers for each torsional fragment for each molecule  
+  
+The floe also generates datasets for torsional fragments, pre-QM torsional conformers, and conformers that fail various QM stages.
