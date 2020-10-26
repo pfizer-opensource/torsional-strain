@@ -218,6 +218,10 @@ class TorsionGenerator:
             # change bridge atom to Carbon
             for atom in torsionMol.GetAtoms(OEHasMapIdx(BRIDGE_ATOM_IDX)):
                 atom.SetAtomicNum(OEElemNo_C)
+                # adjust implicit atom count
+                explicit_valence = atom.GetExplicitValence()
+                if explicit_valence < 4:
+                    atom.SetImplicitHCount(4 - explicit_valence)
 
             TorsionGenerator.SetSDData(A_IDX, B_IDX, C_IDX, D_IDX, torsion, torsionMol)
 
