@@ -78,23 +78,15 @@ failfs3.promote_parameter('buffered', default=False)
 failfs3.parameter_overrides["buffered"] = {"hidden": True}
 
 # Add Cubes to Floe
-cubes = [ifs, hf3cCube, b3lyp321gCube, b3lyp631gCube, psi4EnergyCube,
+cubes = [ifs, hf3cCube, psi4EnergyCube,
          ofs, failFastQM, failfs2, failfs3]
 [job.add_cube(c) for c in cubes]
 
 # Connect ports
 ifs.success.connect(hf3cCube.intake)
-hf3cCube.success.connect(b3lyp321gCube.intake)
+hf3cCube.success.connect(psi4EnergyCube.intake)
 hf3cCube.failure.connect(failFastQM.intake)
-hf3cCube.system_failure.connect(b3lyp321gCube.intake)
-
-b3lyp321gCube.success.connect(b3lyp631gCube.intake)
-b3lyp321gCube.failure.connect(failFastQM.intake)
-b3lyp321gCube.system_failure.connect(b3lyp631gCube.intake)
-
-b3lyp631gCube.success.connect(psi4EnergyCube.intake)
-b3lyp631gCube.failure.connect(failFastQM.intake)
-b3lyp631gCube.system_failure.connect(psi4EnergyCube.intake)
+hf3cCube.system_failure.connect(psi4EnergyCube.intake)
 
 psi4EnergyCube.success.connect(ofs.intake)
 psi4EnergyCube.failure.connect(failfs2.intake)
